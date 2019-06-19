@@ -1,3 +1,6 @@
+[![CircleCI](https://circleci.com/gh/brandsExclusive/router/tree/master.svg?style=svg)](https://circleci.com/gh/brandsExclusive/router/tree/master)
+[![NPM](http://img.shields.io/npm/v/@luxuryescapes/router.svg?style=flat-square)](https://npmjs.org/package/@luxuryescapes/router)
+
 # router
 
 > Opinionated wrapper around express
