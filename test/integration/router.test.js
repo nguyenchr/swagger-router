@@ -40,14 +40,14 @@ const swaggerBaseProperties = {
 const schema = {
   request: {
     query: s.objectWithOnly({
-      hello: s.string(),
+      hello: s.enum({ type: 'string', values: ['hi', 'hello'], verbose: true, description: 'Different ways to greet someone' }),
       world: s.string({ min: 2, max: 4 })
     }),
     params: s.objectWithOnly({
       id: s.integer({ parse: true })
     }),
     body: s.objectWithOnly({
-      action: s.enum({ values: ['create', 'update'], verbose: true })
+      action: s.enum({ values: ['create', 'update'], verbose: true, description: 'The action you want to perform' })
     })
   },
   responses: {
@@ -124,7 +124,7 @@ describe('router', () => {
         message: 'Invalid url query parameters',
         errors: [{
           path: 'hello',
-          message: 'should be a string'
+          message: 'should be a valid enum value (hi,hello)'
         }]
       })
     })
@@ -313,7 +313,14 @@ describe('router', () => {
               },
               parameters: [
                 { name: 'id', in: 'path', required: true, type: 'integer' },
-                { name: 'hello', in: 'query', required: true, type: 'string' },
+                {
+                  name: 'hello',
+                  in: 'query',
+                  required: true,
+                  type: 'string',
+                  description: 'Different ways to greet someone',
+                  enum: ['hi', 'hello']
+                },
                 { name: 'world', in: 'query', required: true, type: 'string' },
                 {
                   name: 'payload',
@@ -321,7 +328,7 @@ describe('router', () => {
                   required: true,
                   schema: {
                     type: 'object',
-                    properties: { action: { enum: ['create', 'update'] } },
+                    properties: { action: { enum: ['create', 'update'], description: 'The action you want to perform' } },
                     required: ['action'],
                     additionalProperties: false
                   }
