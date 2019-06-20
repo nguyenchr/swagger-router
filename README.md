@@ -59,7 +59,10 @@ const swaggerBaseProperties = {
   definitions: {}
 }
 
-const routerInstance = router(server, { validateResponses: true, swaggerBaseProperties })
+const routerInstance = router(server, {
+  validateResponses: true, // false = responses not validated,true = all responses matching the defined status codes in the schema will be validated and an error throw, DEFAULT: false
+  swaggerBaseProperties // the base properties to include in the swagger definition
+})
 
 // define routes
 routerInstance.put({
@@ -82,7 +85,8 @@ routerInstance.put({
   isPublic: true,
   tags: ['Something'], // for swagger
   summary: 'This route is about something', // for swagger
-  description: 'This route does something' // for swagger
+  description: 'This route does something', // for swagger
+  warnOnRequestValidationError: false // false = throw error, true = log warning DEFAULT: false
 })
 
 // this is the endpoint that the swagger ui will be served on
