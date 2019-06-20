@@ -77,7 +77,7 @@ describe('router', () => {
     })
   }
 
-  const setupRoutes = async ({ handler, opts } = {}) => {
+  const setupRoutes = async ({ handler, opts, routeOpts = {} } = {}) => {
     routerInstance = router(server, opts || { validateResponses: true, swaggerBaseProperties })
     routerInstance.put({
       url: '/api/something/:id',
@@ -86,7 +86,8 @@ describe('router', () => {
       isPublic: true,
       tags: ['Something'],
       summary: 'This route is about something',
-      description: 'This route does something'
+      description: 'This route does something',
+      ...routeOpts
     })
     routerInstance.serveSwagger('/docs')
     server.use(errorHandler)
@@ -96,74 +97,93 @@ describe('router', () => {
   }
 
   describe('request validation', () => {
-    beforeEach(async () => {
-      return setupRoutes()
-    })
+    describe('when enabled', () => {
+      beforeEach(async () => {
+        return setupRoutes()
+      })
 
-    it('should return if request is valid', async () => {
-      const response = await chai.request(app).put('/api/something/123')
-        .query({ hello: 'hi', world: 'yes' })
-        .send({
-          action: 'create'
+      it('should return if request is valid', async () => {
+        const response = await chai.request(app).put('/api/something/123')
+          .query({ hello: 'hi', world: 'yes' })
+          .send({
+            action: 'create'
+          })
+
+        expect(response.status).to.eql(201)
+        expect(response.body).to.eql({ id: 123 })
+      })
+
+      it('should error if query params are invalid', async () => {
+        const response = await chai.request(app).put('/api/something/123')
+          .query({ world: 'yes' })
+          .send({
+            action: 'create'
+          })
+
+        expect(response.status).to.eql(400)
+        expect(response.body).to.eql({
+          status: 400,
+          message: 'Invalid url query parameters',
+          errors: [{
+            path: 'hello',
+            message: 'should be a valid enum value (hi,hello)'
+          }]
         })
+      })
 
-      expect(response.status).to.eql(201)
-      expect(response.body).to.eql({ id: 123 })
-    })
+      it('should error if params are invalid', async () => {
+        const response = await chai.request(app).put('/api/something/myid123')
+          .query({ hello: 'hi', world: 'yes' })
+          .send({
+            action: 'create'
+          })
 
-    it('should error if query params are invalid', async () => {
-      const response = await chai.request(app).put('/api/something/123')
-        .query({ world: 'yes' })
-        .send({
-          action: 'create'
+        expect(response.status).to.eql(400)
+        expect(response.body).to.eql({
+          status: 400,
+          message: 'Invalid url path parameters',
+          errors: [{
+            path: 'id',
+            message: 'should be an integer',
+            value: 'myid123'
+          }]
         })
+      })
 
-      expect(response.status).to.eql(400)
-      expect(response.body).to.eql({
-        status: 400,
-        message: 'Invalid url query parameters',
-        errors: [{
-          path: 'hello',
-          message: 'should be a valid enum value (hi,hello)'
-        }]
+      it('should error if payload is invalid', async () => {
+        const response = await chai.request(app).put('/api/something/123')
+          .query({ hello: 'hi', world: 'yes' })
+          .send({
+            action: 'delete'
+          })
+
+        expect(response.status).to.eql(400)
+        expect(response.body).to.eql({
+          status: 400,
+          message: 'Invalid payload',
+          errors: [{
+            path: 'action',
+            message: 'should be a valid enum value (create,update)',
+            value: 'delete'
+          }]
+        })
       })
     })
 
-    it('should error if params are invalid', async () => {
-      const response = await chai.request(app).put('/api/something/myid123')
-        .query({ hello: 'hi', world: 'yes' })
-        .send({
-          action: 'create'
-        })
-
-      expect(response.status).to.eql(400)
-      expect(response.body).to.eql({
-        status: 400,
-        message: 'Invalid url path parameters',
-        errors: [{
-          path: 'id',
-          message: 'should be an integer',
-          value: 'myid123'
-        }]
+    describe('when on warn mode', () => {
+      beforeEach(async () => {
+        return setupRoutes({ routeOpts: { warnOnRequestValidationError: true } })
       })
-    })
 
-    it('should error if payload is invalid', async () => {
-      const response = await chai.request(app).put('/api/something/123')
-        .query({ hello: 'hi', world: 'yes' })
-        .send({
-          action: 'delete'
-        })
+      it('should not error if query params are invalid', async () => {
+        const response = await chai.request(app).put('/api/something/123')
+          .query({ world: 'yes' })
+          .send({
+            action: 'create'
+          })
 
-      expect(response.status).to.eql(400)
-      expect(response.body).to.eql({
-        status: 400,
-        message: 'Invalid payload',
-        errors: [{
-          path: 'action',
-          message: 'should be a valid enum value (create,update)',
-          value: 'delete'
-        }]
+        expect(response.status).to.eql(201)
+        expect(response.body).to.eql({ id: 123 })
       })
     })
   })
