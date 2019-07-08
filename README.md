@@ -77,6 +77,11 @@ routerInstance.put({
       201: s.objectWithOnly({ id: s.integer() })
     }
   },
+  // pre handlers are run before request validation and before your handlers
+  // usually used for authentication
+  preHandlers: [async (req, res) => {
+    req.apiToken = getToken()
+  }],
   handlers: [async (req, res) => {
     return res.status(201).json({
       id: parseInt(req.params.id)
