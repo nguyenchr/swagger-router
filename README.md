@@ -79,8 +79,9 @@ routerInstance.put({
   },
   // pre handlers are run before request validation and before your handlers
   // usually used for authentication
-  preHandlers: [async (req, res) => {
+  preHandlers: [async (req, res, next) => {
     req.apiToken = getToken()
+    next()
   }],
   handlers: [async (req, res) => {
     return res.status(201).json({

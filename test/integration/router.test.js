@@ -96,6 +96,36 @@ describe('router', () => {
     })
   }
 
+  describe('preHandlers', () => {
+    beforeEach(async () => {
+      return setupRoutes({
+        handler: async (req, res) => {
+          return res.status(201).json({
+            id: req.userToken
+          })
+        },
+        opts: { validateResponses: false, swaggerBaseProperties },
+        routeOpts: {
+          preHandlers: [(req, res, next) => {
+            req.userToken = 'abc'
+            next()
+          }]
+        }
+      })
+    })
+
+    it('pre handlers come first', async () => {
+      const response = await chai.request(app).put('/api/something/123')
+        .query({ hello: 'hi', world: 'yes' })
+        .send({
+          action: 'create'
+        })
+
+      expect(response.status).to.eql(201)
+      expect(response.body).to.eql({ id: 'abc' })
+    })
+  })
+
   describe('request validation', () => {
     describe('when enabled', () => {
       beforeEach(async () => {
