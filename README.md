@@ -92,7 +92,11 @@ routerInstance.put({
   tags: ['Something'], // for swagger
   summary: 'This route is about something', // for swagger
   description: 'This route does something', // for swagger
+  validateResponses: false, //  false response body will not be validated against schema, true = response body validated against schema DEFAULT: false
   warnOnRequestValidationError: false // false = throw error, true = log warning DEFAULT: false
+  logRequests: true, // true = request and response will be logged DEFAULT: false,
+  correlationIdExtractor: (req, res) => { return req.params.id }, // for use when logRequests is TRUE, this will be used to extract the correlationid from the request/response for use in the log output DEFAULT: null
+  logger: new Bunyan(), // you can pass in a logger that will be used for logging output , must have methods `log`, `warn` and `error` DEFAULT: console
 })
 
 // this is the endpoint that the swagger ui will be served on

@@ -1,4 +1,5 @@
 const chai = require('chai')
+const sinon = require('sinon')
 const express = require('express')
 const bodyParser = require('body-parser')
 const s = require('strummer')
@@ -6,6 +7,7 @@ const s = require('strummer')
 const expect = chai.expect
 
 const { router, errorHandler, errors } = require('../../index')
+const uuid = require('../../lib/utils/uuid')
 
 const swaggerBaseProperties = {
   swagger: '2.0',
@@ -78,7 +80,7 @@ describe('router', () => {
   }
 
   const setupRoutes = async ({ handler, opts, routeOpts = {} } = {}) => {
-    routerInstance = router(server, opts || { validateResponses: true, swaggerBaseProperties })
+    routerInstance = router(server, { validateResponses: true, swaggerBaseProperties, ...opts })
     routerInstance.put({
       url: '/api/something/:id',
       schema,
@@ -123,6 +125,73 @@ describe('router', () => {
 
       expect(response.status).to.eql(201)
       expect(response.body).to.eql({ id: 'abc' })
+    })
+  })
+
+  describe('request logging', () => {
+    describe('when disabled', () => {
+      let logger
+      beforeEach(async () => {
+        logger = { log: sinon.stub() }
+        return setupRoutes({ opts: { logRequests: false, logger } })
+      })
+
+      it('should not log', async () => {
+        const response = await chai.request(app).put('/api/something/123')
+          .query({ hello: 'hi', world: 'yes' })
+          .send({
+            action: 'create'
+          })
+
+        expect(response.status).to.eql(201)
+        sinon.assert.notCalled(logger.log)
+      })
+    })
+
+    describe('when enabled', () => {
+      let logger
+      beforeEach(async () => {
+        logger = { log: sinon.stub() }
+        sinon.stub(uuid, 'get').returns('stubbeduuid')
+        return setupRoutes({ opts: { logRequests: true, logger } })
+      })
+
+      afterEach(() => {
+        uuid.get.restore()
+      })
+
+      it('should log', async () => {
+        const response = await chai.request(app).put('/api/something/123')
+          .query({ hello: 'hi', world: 'yes' })
+          .send({
+            action: 'create'
+          })
+
+        expect(response.status).to.eql(201)
+        sinon.assert.calledTwice(logger.log)
+        sinon.assert.calledWith(logger.log, sinon.match('request: (stubbeduuid)'))
+        sinon.assert.calledWith(logger.log, sinon.match('response: (stubbeduuid)'))
+      })
+    })
+
+    describe('when using correlationIdExtractor', () => {
+      let logger
+      beforeEach(async () => {
+        logger = { log: sinon.stub() }
+        return setupRoutes({ opts: { logRequests: true, logger, correlationIdExtractor: (req, res) => req.params.id } })
+      })
+
+      it('should log with specified correlation id', async () => {
+        const response = await chai.request(app).put('/api/something/123')
+          .query({ hello: 'hi', world: 'yes' })
+          .send({
+            action: 'create'
+          })
+
+        expect(response.status).to.eql(201)
+        sinon.assert.calledWith(logger.log, sinon.match('request: (123)'))
+        sinon.assert.calledWith(logger.log, sinon.match('response: (123)'))
+      })
     })
   })
 
