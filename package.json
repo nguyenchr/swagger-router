@@ -1,5 +1,5 @@
 {
-  "name": "@luxuryescapes/router",
+  "name": "swagger-router",
   "version": "0.2.1",
   "description": "Wrapper around express router that provides validation and documentation out of the box",
   "main": "index.js",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/brandsExclusive/router.git"
+    "url": "git+https://github.com/nguyenchr/swagger-router.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/brandsExclusive/router/issues"
+    "url": "https://github.com/nguyenchr/swagger-router/issues"
   },
-  "homepage": "https://github.com/brandsExclusive/router#readme",
+  "homepage": "https://github.com/nguyenchr/swagger-router#readme",
   "devDependencies": {
     "body-parser": "^1.19.0",
     "chai": "^4.2.0",

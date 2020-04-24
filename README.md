@@ -1,7 +1,4 @@
-[![CircleCI](https://circleci.com/gh/brandsExclusive/router/tree/master.svg?style=svg)](https://circleci.com/gh/brandsExclusive/router/tree/master)
-[![NPM](http://img.shields.io/npm/v/@luxuryescapes/router.svg?style=flat-square)](https://npmjs.org/package/@luxuryescapes/router)
-
-# router
+# swagger-router
 
 > Opinionated wrapper around express
 
@@ -14,15 +11,21 @@ Opinionated wrapper around express, which adds in validation via [strummer](http
 
 ## Getting started
 
+Add to package.json
+
 ```
-npm install @luxuryescapes/router
+{
+  "dependencies": {
+    "swagger-router": "git+https://github.com/nguyenchr/swagger-router.git#master"
+  }
+}
 ```
 
 ```js
 const express = require('express')
 const bodyParser = require('body-parser')
 const s = require('strummer')
-const { router, errorHandler } = require('@luxuryescapes/router')
+const { router, errorHandler } = require('swagger-router')
 
 const server = express()
 server.use(bodyParser.json())
@@ -127,7 +130,7 @@ const controller = async (req, res) => {
 If you want to return something that isn't a successful response, you can easily do this by throwing a error
 
 ```js
-const { errors } = require('@luxuryescapes/router')
+const { errors } = require('swagger-router)
 
 const controller = async (req, res) => {
   if (req.params.id === 1) {
